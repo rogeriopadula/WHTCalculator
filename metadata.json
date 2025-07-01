@@ -1,0 +1,6 @@
+{
+  "name": "S2P Calculators",
+  "description": "A versatile set of calculators for Source to Pay (S2P) professionals. Includes a Brazilian tax calculator for invoices, plus universal percentage and Rule of Three calculators. Supports multiple languages (Portuguese, English, Polish) and currencies (BRL, USD, PLN, EUR) with localized formatting.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
