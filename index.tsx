@@ -1,0 +1,796 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+    const { useState, useMemo, useEffect, useCallback, createContext, useContext } = React;
+
+    // --- LOCALIZATION & INTERNATIONALIZATION (i18n) ---
+    const enBase = {
+        s2pCalculators: 'S2P Calculators',
+        s2pDescription: 'Tools for day-to-day Accounts Payable tasks',
+        taxCalculator: 'Tax Calculator',
+        percentageCalculator: 'Percentage Calculator',
+        ruleOf3: 'Rule of 3',
+        configuration: 'Configuration',
+        reset: 'Reset',
+        details: 'Details',
+        liquid: 'Net',
+        taxes: 'Taxes',
+        result: 'Result',
+        calculateNetValue: 'Calculate Net Value',
+        calculateGrossValue: 'Calculate Gross Value',
+        grossInvoiceValue: 'Gross Invoice Value',
+        desiredNetValue: 'Desired Net Value',
+        calculatedGrossValue: 'Calculated Gross Value',
+        withholdingTaxes: 'Withholding Taxes',
+        pccTooltip: 'Brazilian social contributions (CSLL, PIS, COFINS). Specific to Brazilian regulations.',
+        inssTooltip: 'Brazilian social security contribution. The calculation base may differ from the gross invoice value.',
+        issTooltip: 'Tax on Services. The rate varies by municipality and type of service.',
+        irrfTooltip: 'Withholding Income Tax. Typically 1% or 1.5% for services in Brazil.',
+        inssRate: 'INSS Rate',
+        inssCalculationBase: 'INSS Calculation Base',
+        inssBaseDefault: 'Default: uses Gross Value ({value}) as base.',
+        issRate: 'ISS Rate',
+        issCalculationBase: 'ISS Calculation Base',
+        issBaseDefault: 'Default: uses Gross Value ({value}) as base.',
+        irrfRate: 'IRRF Rate',
+        pccSubtotal: 'PCC Subtotal',
+        copyPccSubtotal: 'Copy PCC Subtotal',
+        copyInss: 'Copy INSS',
+        copyIss: 'Copy ISS',
+        copyIrrf: 'Copy IRRF',
+        totalTaxes: 'Total Taxes',
+        copyTotalTaxes: 'Copy Total Taxes',
+        netValueToReceive: 'Net Value to Receive',
+        copyNetValue: 'Copy Net Value',
+        copyAllToSap: 'Copy All to SAP',
+        copied: 'Copied!',
+        calcXOfValue: 'Calculate X% of a Value',
+        calcXOfValueDesc: 'Find the value corresponding to a percentage of a total.',
+        totalValue: 'Total Value',
+        percentage: 'Percentage',
+        discoverOriginalValue: 'Discover Original Value (Reverse)',
+        discoverOriginalValueDesc: 'If you have a final value after a percentage was added, find the initial value.',
+        finalValueWithAddition: 'Final Value (with addition)',
+        percentageAdded: 'Percentage Added',
+        originalBaseValue: 'Original (Base) Value',
+        copyOriginalValue: 'Copy Original Value',
+        calculatePercentageVariance: 'Calculate Percentage Variance',
+        calculatePercentageVarianceDesc: 'Measure the percentage difference between an initial and a final value.',
+        initialValue: 'Initial Value',
+        finalValue: 'Final Value',
+        variance: 'Variance',
+        copyVariance: 'Copy Variance',
+        calculatePercentageRepresentation: 'Calculate Percentage Representation',
+        calculatePercentageRepresentationDesc: 'Find out what percentage one value is of a total. E.g. "10 is what % of 100?"',
+        partialValue: 'Partial Value',
+        represents: 'Represents',
+        copyPercentage: 'Copy Percentage',
+        ruleOf3Desc: 'Use to find an unknown value in proportions.',
+        ifA: 'If (A)',
+        isToB: 'is to (B)',
+        thenC: 'Then (C)',
+        isToX: 'is to (X)',
+        invalid: 'Invalid',
+        copyResult: 'Copy Result',
+    };
+
+    const locales = {
+      'pt-BR': {
+        name: 'Português (Brasil)', currency: 'BRL', decimal: ',', grouping: '.',
+        s2pCalculators: 'Calculadoras para S2P',
+        s2pDescription: 'Ferramentas para o dia a dia de Contas a Pagar',
+        taxCalculator: 'Calculadora de Impostos',
+        percentageCalculator: 'Calculadora de Porcentagem',
+        ruleOf3: 'Regra de 3',
+        configuration: 'Configuração',
+        reset: 'Resetar',
+        details: 'Detalhamento',
+        liquid: 'Líquido',
+        taxes: 'Impostos',
+        result: 'Resultado',
+        calculateNetValue: 'Calcular Valor Líquido',
+        calculateGrossValue: 'Calcular Valor Bruto',
+        grossInvoiceValue: 'Valor Bruto da Nota',
+        desiredNetValue: 'Valor Líquido Desejado',
+        calculatedGrossValue: 'Valor Bruto Calculado',
+        withholdingTaxes: 'Impostos Retidos na Fonte',
+        pccTooltip: 'Contribuição Social sobre o Lucro Líquido (CSLL), Programa de Integração Social (PIS) e Contribuição para o Financiamento da Seguridade Social (COFINS).',
+        inssTooltip: 'Contribuição para o Instituto Nacional do Seguro Social. A base de cálculo pode ser diferente do valor bruto da nota.',
+        issTooltip: 'Imposto Sobre Serviços. A alíquota varia conforme o município e o serviço prestado.',
+        irrfTooltip: 'Imposto de Renda Retido na Fonte. Geralmente 1% ou 1,5% para serviços.',
+        inssRate: 'Alíquota INSS',
+        inssCalculationBase: 'Base de Cálculo do INSS',
+        inssBaseDefault: 'Padrão: usa o Valor Bruto ({value}) como base.',
+        issRate: 'Alíquota ISS',
+        issCalculationBase: 'Base de Cálculo do ISS',
+        issBaseDefault: 'Padrão: usa o Valor Bruto ({value}) como base.',
+        irrfRate: 'Alíquota IRRF',
+        pccSubtotal: 'Subtotal PCC',
+        copyPccSubtotal: 'Copiar Subtotal PCC',
+        copyInss: 'Copiar INSS',
+        copyIss: 'Copiar ISS',
+        copyIrrf: 'Copiar IRRF',
+        totalTaxes: 'Total de Impostos',
+        copyTotalTaxes: 'Copiar Total de Impostos',
+        netValueToReceive: 'Valor Líquido a Receber',
+        copyNetValue: 'Copiar Valor Líquido',
+        copyAllToSap: 'Copiar Tudo para SAP',
+        copied: 'Copiado!',
+        calcXOfValue: 'Calcular X% de um Valor',
+        calcXOfValueDesc: 'Descubra o valor correspondente a uma porcentagem de um total.',
+        totalValue: 'Valor Total',
+        percentage: 'Porcentagem',
+        discoverOriginalValue: 'Descobrir Valor Original (Reverso)',
+        discoverOriginalValueDesc: 'Se você tem um valor final após um acréscimo de X%, encontre o valor inicial.',
+        finalValueWithAddition: 'Valor Final (com acréscimo)',
+        percentageAdded: 'Porcentagem Adicionada',
+        originalBaseValue: 'Valor Original (Base)',
+        copyOriginalValue: 'Copiar Valor Original',
+        calculatePercentageVariance: 'Calcular Variação Percentual',
+        calculatePercentageVarianceDesc: 'Meça a diferença percentual entre um valor inicial e um valor final.',
+        initialValue: 'Valor Inicial',
+        finalValue: 'Valor Final',
+        variance: 'Variação',
+        copyVariance: 'Copiar Variação',
+        calculatePercentageRepresentation: 'Calcular Representação Percentual',
+        calculatePercentageRepresentationDesc: 'Descubra quanto um valor representa em porcentagem de um total. Ex: "10 é qual % de 100?"',
+        partialValue: 'Valor Parcial',
+        represents: 'Representa',
+        copyPercentage: 'Copiar Porcentagem',
+        ruleOf3Desc: 'Use para encontrar um valor desconhecido em proporções.',
+        ruleOf3Example: 'Exemplo: Se 100g de um produto custam R$ 5,00, quanto custarão 250g?',
+        ruleOf3Instruction: 'Coloque `100` em (A), `5` em (B), e `250` em (C) para encontrar o valor de (X).',
+        ifA: 'Se (A)',
+        isToB: 'está para (B)',
+        thenC: 'Então (C)',
+        isToX: 'está para (X)',
+        invalid: 'Inválido',
+        copyResult: 'Copiar Resultado',
+      },
+      'en-US': {
+        name: 'English (USA)', currency: 'USD', decimal: '.', grouping: ',',
+        ...enBase,
+        ruleOf3Example: 'Example: If 3 apples cost $2, how much will 7 apples cost?',
+        ruleOf3Instruction: 'Put `3` in (A), `2` in (B), and `7` in (C) to find the value of (X).',
+      },
+       'pl-PL': {
+        name: 'Polski (Polska)', currency: 'PLN', decimal: ',', grouping: ' ',
+        s2pCalculators: 'Kalkulatory dla S2P',
+        s2pDescription: 'Narzędzia do codziennych zadań w dziale Zobowiązań',
+        taxCalculator: 'Kalkulator Podatkowy',
+        percentageCalculator: 'Kalkulator Procentowy',
+        ruleOf3: 'Reguła Trzech',
+        configuration: 'Konfiguracja',
+        reset: 'Resetuj',
+        details: 'Szczegóły',
+        liquid: 'Netto',
+        taxes: 'Podatki',
+        result: 'Wynik',
+        calculateNetValue: 'Oblicz Wartość Netto',
+        calculateGrossValue: 'Oblicz Wartość Brutto',
+        grossInvoiceValue: 'Wartość Brutto Faktury',
+        desiredNetValue: 'Oczekiwana Wartość Netto',
+        calculatedGrossValue: 'Obliczona Wartość Brutto',
+        withholdingTaxes: 'Podatki u Źródła (Brazylia)',
+        pccTooltip: 'Brazylijskie składki społeczne (CSLL, PIS, COFINS). Specyficzne dla brazylijskich przepisów.',
+        inssTooltip: 'Brazylijska składka na ubezpieczenie społeczne. Podstawa obliczenia może różnić się od wartości brutto faktury.',
+        issTooltip: 'Podatek od Usług. Stawka zależy od gminy i rodzaju usługi.',
+        irrfTooltip: 'Zaliczkowy podatek dochodowy. Zazwyczaj 1% lub 1,5% dla usług w Brazylii.',
+        inssRate: 'Stawka INSS',
+        inssCalculationBase: 'Podstawa Obliczenia INSS',
+        inssBaseDefault: 'Domyślnie: używa Wartości Brutto ({value}) jako podstawy.',
+        issRate: 'Stawka ISS',
+        issCalculationBase: 'Podstawa Obliczenia ISS',
+        issBaseDefault: 'Domyślnie: używa Wartości Brutto ({value}) jako podstawy.',
+        irrfRate: 'Stawka IRRF',
+        pccSubtotal: 'Suma Częściowa PCC',
+        copyPccSubtotal: 'Kopiuj Sumę PCC',
+        copyInss: 'Kopiuj INSS',
+        copyIss: 'Kopiuj ISS',
+        copyIrrf: 'Kopiuj IRRF',
+        totalTaxes: 'Suma Podatków',
+        copyTotalTaxes: 'Kopiuj Sumę Podatków',
+        netValueToReceive: 'Wartość Netto do Otrzymania',
+        copyNetValue: 'Kopiuj Wartość Netto',
+        copyAllToSap: 'Kopiuj Wszystko do SAP',
+        copied: 'Skopiowano!',
+        calcXOfValue: 'Oblicz X% z Wartości',
+        calcXOfValueDesc: 'Znajdź wartość odpowiadającą procentowi z całości.',
+        totalValue: 'Wartość Całkowita',
+        percentage: 'Procent',
+        discoverOriginalValue: 'Odkryj Wartość Początkową (Odwrotnie)',
+        discoverOriginalValueDesc: 'Jeśli masz wartość końcową po dodaniu procentu, znajdź wartość początkową.',
+        finalValueWithAddition: 'Wartość Końcowa (z dodatkiem)',
+        percentageAdded: 'Dodany Procent',
+        originalBaseValue: 'Wartość Początkowa (Podstawa)',
+        copyOriginalValue: 'Kopiuj Wartość Początkową',
+        calculatePercentageVariance: 'Oblicz Zmianę Procentową',
+        calculatePercentageVarianceDesc: 'Zmierz różnicę procentową między wartością początkową a końcową.',
+        initialValue: 'Wartość Początkowa',
+        finalValue: 'Wartość Końcowa',
+        variance: 'Zmiana',
+        copyVariance: 'Kopiuj Zmianę',
+        calculatePercentageRepresentation: 'Oblicz Reprezentację Procentową',
+        calculatePercentageRepresentationDesc: 'Sprawdź, jaki procent jednej wartości stanowi całość. Np. "10 to jaki % ze 100?"',
+        partialValue: 'Wartość Częściowa',
+        represents: 'Reprezentuje',
+        copyPercentage: 'Kopiuj Procent',
+        ruleOf3Desc: 'Użyj, aby znaleźć nieznaną wartość w proporcjach.',
+        ruleOf3Example: 'Przykład: Jeśli 3 jabłka kosztują 2 zł, ile będzie kosztować 7 jabłek?',
+        ruleOf3Instruction: 'Wpisz `3` w (A), `2` w (B) i `7` w (C), aby znaleźć wartość (X).',
+        ifA: 'Jeśli (A)',
+        isToB: 'wynosi (B)',
+        thenC: 'To (C)',
+        isToX: 'wynosi (X)',
+        invalid: 'Nieważne',
+        copyResult: 'Kopiuj Wynik',
+      },
+      'en-GB': {
+        name: 'English (Eurozone)', currency: 'EUR', decimal: ',', grouping: '.',
+        ...enBase,
+        ruleOf3Example: 'Example: If 3 items cost €2, how much will 7 items cost?',
+        ruleOf3Instruction: 'Put `3` in (A), `2` in (B), and `7` in (C) to find the value of (X).',
+      },
+    };
+
+    const LocalizationContext = createContext(null);
+
+    const useLocalization = () => {
+      const [locale, setLocale] = useState(() => {
+        const savedLocale = localStorage.getItem('appLocale');
+        return savedLocale && locales[savedLocale] ? savedLocale : 'pt-BR';
+      });
+
+      useEffect(() => {
+        localStorage.setItem('appLocale', locale);
+      }, [locale]);
+      
+      const localeConfig = useMemo(() => locales[locale], [locale]);
+      const decimalSeparator = useMemo(() => localeConfig.decimal, [localeConfig]);
+
+      const t = useCallback((key, replacements = {}) => {
+        let text = localeConfig[key] || key;
+        Object.keys(replacements).forEach(rKey => {
+            text = text.replace(`{${rKey}}`, replacements[rKey]);
+        });
+        return text;
+      }, [localeConfig]);
+      
+      const formatCurrency = useCallback((value) => {
+        if (isNaN(value) || typeof value !== 'number' || !isFinite(value)) {
+            return new Intl.NumberFormat(locale, { style: 'currency', currency: localeConfig.currency }).format(0);
+        }
+        return new Intl.NumberFormat(locale, { style: 'currency', currency: localeConfig.currency }).format(value);
+      }, [locale, localeConfig.currency]);
+      
+      const parseLocaleNumber = useCallback((stringNumber) => {
+          if (typeof stringNumber !== 'string') return 0;
+          const sanitized = stringNumber.replace(new RegExp(`[^\\d\\${decimalSeparator}]`, 'g'), '').replace(decimalSeparator, '.');
+          const result = parseFloat(sanitized);
+          return isNaN(result) ? 0 : result;
+      }, [decimalSeparator]);
+
+      const handleCurrencyChange = useCallback((e, setter) => {
+        let value = e.target.value.replace(/\D/g, ""); // Remove all non-digits
+        value = (parseInt(value, 10) / 100).toFixed(2);
+        if (isNaN(parseFloat(value))) {
+            setter(formatCurrency(0));
+        } else {
+            setter(formatCurrency(parseFloat(value)));
+        }
+      }, [formatCurrency]);
+
+
+      return { locale, setLocale, t, formatCurrency, parseLocaleNumber, handleCurrencyChange, decimalSeparator };
+    };
+
+    // --- INITIAL STATE ---
+    const INITIAL_INSS_RATE = 11;
+    const INITIAL_ISS_RATE = '0';
+    const INITIAL_IRRF_RATE = 1.5;
+    const INITIAL_ENABLED_TAXES = { pcc: true, pis: true, cofins: true, csll: true, inss: false, iss: false, irrf: true };
+
+    
+    // --- SVG ICONS ---
+    const CalculatorIcon = ({ className = '' }: { className?: string }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="20" x="4" y="2" rx="2" /><line x1="8" x2="16" y1="6" y2="6" /><line x1="16" x2="16" y1="14" y2="18" /><path d="M16 10h.01" /><path d="M12 10h.01" /><path d="M8 10h.01" /><path d="M12 14h.01" /><path d="M8 14h.01" /><path d="M12 18h.01" /><path d="M8 18h.01" /></svg>);
+    const ResetIcon = ({ className = '' }: { className?: string }) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0M2.985 19.644A8.25 8.25 0 0114.648 8.02l-3.182 3.182m0-4.991v4.99" /></svg>);
+    const ResetFieldIcon = ({ className = '' }: { className?: string }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}><path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.707-10.707-1.414-1.414L10 8.586 7.707 6.293 6.293 7.707 8.586 10l-2.293 2.293 1.414 1.414L10 11.414l2.293 2.293 1.414-1.414L11.414 10l2.293-2.293Z" clipRule="evenodd" /></svg>);
+    const SunIcon = ({ className = '' }: { className?: string }) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-6.364-.386 1.591-1.591M3 12h2.25m.386-6.364 1.591 1.591M12 12a6 6 0 1 1 0 12 6 6 0 0 1 0-12Z" /></svg>);
+    const MoonIcon = ({ className = '' }: { className?: string }) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25c0 5.385 4.365 9.75 9.75 9.75 2.572 0 4.92-.99 6.752-2.625Z" /></svg>);
+    const CopyIcon = ({ className = '' }: { className?: string }) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" /></svg>);
+    const CheckIcon = ({ className = '' }: { className?: string }) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>);
+    const QuestionIcon = ({className = ''}: {className?: string}) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" /></svg>);
+    const ArrowUpIcon = ({className = ''}: {className?: string}) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" /></svg>);
+    const ArrowDownIcon = ({className = ''}: {className?: string}) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" /></svg>);
+    const LanguageIcon = ({className = ''}: {className?: string}) => (<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21l-5.48-5.48m5.48 5.48v-5.48m0 5.48h5.48M10.5 21a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9" /></svg>);
+
+
+    // --- UI HELPER COMPONENTS ---
+    const Tooltip = ({ text = '', children = null }: { text: string, children?: React.ReactNode }) => (<div className="tooltip">{children}<span className="tooltiptext">{text}</span></div>);
+    const InputGroup = ({ label, value, onChange = () => {}, placeholder = null, prefix = null, disabled=false, onFocus=null, onBlur=null, onReset=null, initialValue = null }: { label: string, value: string, onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder?: string, prefix?: string, disabled?: boolean, onFocus?: () => void, onBlur?: () => void, onReset?: () => void, initialValue?: string }) => {
+        const { t } = useContext(LocalizationContext);
+        const showReset = onReset && value !== initialValue;
+        return (
+            <div>
+                <label className="block text-sm font-medium text-light-heading dark:text-dark-heading mb-1.5">{label}</label>
+                <div className="relative rounded-lg shadow-sm">
+                    {prefix && <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-light-text dark:text-dark-text">{prefix}</span>}
+                    <input type="text" value={value} onChange={onChange} onFocus={onFocus} onBlur={onBlur} placeholder={placeholder || ''} disabled={disabled}
+                        className={`block w-full rounded-lg border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-accent/75 focus:border-accent sm:text-sm text-light-heading dark:text-dark-heading ${prefix ? 'pl-10' : 'pr-3'} ${showReset ? 'pr-10' : ''} py-2.5 transition-colors duration-200 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed`}
+                    />
+                    {showReset && (
+                        <button
+                            onClick={onReset}
+                            title={t('reset')}
+                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-accent z-10"
+                        >
+                            <ResetFieldIcon className="w-5 h-5" />
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    };
+    const ResultRow = ({ label, percentage = null, value, isSubtotal = false, action = null }: { label: string, percentage?: string, value: string, isSubtotal?: boolean, action?: React.ReactNode }) => (
+      <div className={`flex justify-between items-center py-2.5 ${isSubtotal ? 'font-semibold' : ''} ${!isSubtotal ? 'border-b border-light-border/50 dark:border-dark-border/50' : ''}`}>
+        <div className="flex items-center"><span className="text-light-text dark:text-dark-text">{label}</span>
+          {percentage && <span className="ml-2 text-xs font-medium bg-light-border/50 dark:bg-dark-border/50 text-light-heading dark:text-dark-heading px-1.5 py-0.5 rounded-full">{percentage}</span>}
+        </div>
+        <div className="flex items-center space-x-2"><span className="font-mono font-medium text-light-heading dark:text-dark-heading">{value}</span>{action}</div>
+      </div>
+    );
+    const TotalRow = ({ label, value, highlight = 'neutral', action=null }: { label: string, value: string, highlight?: 'positive' | 'negative' | 'neutral', action?: React.ReactNode }) => {
+      const colorClasses = { positive: 'text-accent dark:text-accent-400', negative: 'text-red-500 dark:text-red-400', neutral: 'text-light-heading dark:text-dark-heading' };
+      return (<div className="flex justify-between items-center py-2"><span className="font-bold text-light-heading dark:text-dark-heading">{label}</span><div className="flex items-center gap-2"><span className={`font-bold font-mono text-lg ${colorClasses[highlight]}`}>{value}</span>{action}</div></div>);
+    };
+    const ProgressBar = ({ total, net, taxes, t }: { total: number, net: number, taxes: number, t: (key: string) => string }) => {
+        if (total === 0) return <div className="w-full bg-light-border dark:bg-dark-border rounded-full h-3 mb-4" />;
+        const netPercentage = (net / total) * 100;
+        const taxesPercentage = (taxes / total) * 100;
+        return (<div className="mb-6"><div className="flex w-full h-3 rounded-full overflow-hidden bg-light-border/50 dark:bg-dark-border/50" title={`${t('liquid')}: ${netPercentage.toFixed(2)}%, ${t('taxes')}: ${taxesPercentage.toFixed(2)}%`}><div style={{ width: `${netPercentage}%` }} className="bg-accent transition-all duration-300 ease-in-out" /><div style={{ width: `${taxesPercentage}%` }} className="bg-red-500 transition-all duration-300 ease-in-out" /></div><div className="flex justify-between text-xs mt-1.5"><div className="flex items-center"><span className="w-2 h-2 rounded-full bg-accent mr-1.5"></span><span>{t('liquid')}</span></div><div className="flex items-center"><span className="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span><span>{t('taxes')}</span></div></div></div>);
+    };
+    const TaxControl = ({ taxId, label, isChecked, onToggle, tooltip = '', children = null }: { taxId: string, label: string, isChecked: boolean, onToggle: (id: string) => void, tooltip?: string, children?: React.ReactNode }) => (
+        <div className={`p-4 rounded-lg transition-all duration-300 border ${isChecked ? 'border-light-border dark:border-dark-border' : 'bg-slate-100/50 dark:bg-dark-card/30 border-transparent'}`}>
+            <label htmlFor={`toggle-${taxId}`} className="flex items-center justify-between w-full cursor-pointer">
+                <span className={`font-medium transition-colors flex items-center gap-2 ${isChecked ? 'text-light-heading dark:text-dark-heading' : 'text-light-text dark:text-dark-text'}`}>{label}
+                  {tooltip && <Tooltip text={tooltip}><QuestionIcon className="w-4 h-4 text-slate-400"/></Tooltip>}
+                </span>
+                <div className="relative inline-flex items-center"><input type="checkbox" id={`toggle-${taxId}`} checked={isChecked} onChange={() => onToggle(taxId)} className="sr-only peer" /><div className="w-11 h-6 bg-light-border/80 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent/75 rounded-full peer dark:bg-dark-border peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-accent"></div></div>
+            </label>
+            {isChecked && children && (<div className="mt-4 pt-4 border-t border-light-border/50 dark:border-dark-border/50">{children}</div>)}
+        </div>
+    );
+    const NestedTaxControl = ({ taxId, label, isChecked, onToggle }: { taxId: string, label: string, isChecked: boolean, onToggle: (id: string) => void }) => (
+        <label htmlFor={`toggle-${taxId}`} className="flex items-center justify-between w-full cursor-pointer"><span className={`font-medium transition-colors text-light-text dark:text-dark-text`}>{label}</span><div className="relative inline-flex items-center"><input type="checkbox" id={`toggle-${taxId}`} checked={isChecked} onChange={() => onToggle(taxId)} className="sr-only peer" /><div className="w-11 h-6 bg-light-border/80 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent/75 rounded-full peer dark:bg-dark-border peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-accent"></div></div></label>
+    );
+     const PercentageSliderInput = ({ label, value, setValue, min = 0, max = 100, step = 0.01, decimalSeparator, onReset, initialValue }: { label: string, value: string, setValue: (value: string) => void, min?: number, max?: number, step?: number, decimalSeparator: string, onReset: () => void, initialValue: string }) => {
+        const { t } = useContext(LocalizationContext);
+        const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => setValue(e.target.value);
+        const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            let textValue = e.target.value.replace(new RegExp(`[^0-9\\${decimalSeparator}.]`, 'g'), '');
+            setValue(textValue.replace(decimalSeparator, '.'));
+        };
+        const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+             let num = parseFloat(e.target.value.replace(decimalSeparator, '.'));
+             if(isNaN(num)) num = 0;
+             if (num < min) num = min;
+             if (num > max) num = max;
+             setValue(String(num));
+        };
+        const displayValue = String(value).replace('.', decimalSeparator);
+        const numericValue = parseFloat(value);
+        const showReset = onReset && value !== initialValue;
+
+        return (
+            <div>
+                <label className="block text-sm font-medium text-light-heading dark:text-dark-heading mb-1.5">{label}</label>
+                <div className="flex items-center space-x-4">
+                    <input type="range" min={min} max={max} step={step} value={isNaN(numericValue) ? min : numericValue} onChange={handleSliderChange} className="w-full h-2 bg-light-border/50 dark:bg-dark-border/50 rounded-lg appearance-none cursor-pointer accent-accent"/>
+                    <div className="relative w-28 shrink-0">
+                         <input type="text" value={displayValue} onChange={handleTextChange} onBlur={handleBlur} className={`block w-full rounded-lg border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card focus:outline-none focus:ring-2 focus:ring-accent/75 focus:border-accent sm:text-sm text-light-heading dark:text-dark-heading py-2.5 text-center transition-colors duration-200 ${showReset ? 'pr-14' : 'pr-8'}`}/>
+                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-light-text dark:text-dark-text">%</span>
+                        {showReset && (
+                            <button
+                                onClick={onReset}
+                                title={t('reset')}
+                                className="absolute inset-y-0 right-7 flex items-center pr-1 text-slate-400 hover:text-accent z-10"
+                            >
+                                <ResetFieldIcon className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+    
+    const handleCopy = (text, id, setCopiedId) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopiedId(id);
+            setTimeout(() => setCopiedId(null), 2000);
+        }).catch(err => console.error('Failed to copy text: ', err));
+    };
+
+    const createCopyButton = (value, id, title, copiedId, setCopiedId, decimalSeparator) => {
+        if (value === null || value === undefined || value === '' || (typeof value === 'number' && (isNaN(value) || value <= 0 || value === Infinity))) return null;
+        if (typeof value === 'string' && parseFloat(value.replace(decimalSeparator,'.')) <= 0) return null;
+        
+        const textToCopy = typeof value === 'number' ? value.toFixed(2).replace('.', decimalSeparator) : value;
+        return (<button onClick={() => handleCopy(textToCopy, id, setCopiedId)} title={title} className="flex items-center justify-center w-8 h-8 rounded-lg border border-light-border/70 dark:border-dark-border/70 text-light-text/80 dark:text-dark-text/80 transition-all duration-200 hover:border-accent hover:text-accent dark:hover:border-accent dark:hover:text-accent hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent/50">{copiedId === id ? <CheckIcon className="w-5 h-5 text-accent" /> : <CopyIcon className="w-5 h-5" />}</button>);
+    };
+
+    // --- CALCULATOR COMPONENTS ---
+    const TaxCalculator = () => {
+      const { t, formatCurrency, parseLocaleNumber, handleCurrencyChange, decimalSeparator } = useContext(LocalizationContext);
+      
+      const INITIAL_AMOUNT_ZERO = formatCurrency(0);
+
+      const [calculationMode, setCalculationMode] = useState('grossToNet');
+      const [grossAmountStr, setGrossAmountStr] = useState(INITIAL_AMOUNT_ZERO);
+      const [netAmountStr, setNetAmountStr] = useState(INITIAL_AMOUNT_ZERO);
+      const [inssBaseAmountStr, setInssBaseAmountStr] = useState(INITIAL_AMOUNT_ZERO);
+      const [issBaseAmountStr, setIssBaseAmountStr] = useState(INITIAL_AMOUNT_ZERO);
+      const [inssRate, setInssRate] = useState(INITIAL_INSS_RATE);
+      const [issRateStr, setIssRateStr] = useState(INITIAL_ISS_RATE);
+      const [irrfRate, setIrrfRate] = useState(INITIAL_IRRF_RATE);
+      const [copiedId, setCopiedId] = useState(null);
+      const [enabledTaxes, setEnabledTaxes] = useState(INITIAL_ENABLED_TAXES);
+      
+      const grossAmount = useMemo(() => parseLocaleNumber(grossAmountStr), [grossAmountStr, parseLocaleNumber]);
+      const desiredNetAmount = useMemo(() => parseLocaleNumber(netAmountStr), [netAmountStr, parseLocaleNumber]);
+      const inssBaseAmount = useMemo(() => parseLocaleNumber(inssBaseAmountStr), [inssBaseAmountStr, parseLocaleNumber]);
+      const issBaseAmount = useMemo(() => parseLocaleNumber(issBaseAmountStr), [issBaseAmountStr, parseLocaleNumber]);
+      const issRate = useMemo(() => parseFloat(String(issRateStr).replace(',', '.')), [issRateStr]);
+      
+      const totalTaxRates = useMemo(() => {
+          let total = 0;
+          if (enabledTaxes.pcc) {
+              if(enabledTaxes.pis) total += 0.0065;
+              if(enabledTaxes.cofins) total += 0.03;
+              if(enabledTaxes.csll) total += 0.01;
+          }
+          if (enabledTaxes.irrf && irrfRate > 0) total += irrfRate / 100;
+          return total;
+      }, [enabledTaxes, irrfRate]);
+
+      const effectiveTotalTaxRates = useMemo(() => {
+          let rates = totalTaxRates;
+          if (enabledTaxes.inss && inssBaseAmount === 0) rates += inssRate / 100;
+          if (enabledTaxes.iss && issBaseAmount === 0 && !isNaN(issRate)) rates += issRate / 100;
+          return rates;
+      }, [totalTaxRates, enabledTaxes.inss, inssBaseAmount, inssRate, enabledTaxes.iss, issBaseAmount, issRate]);
+
+      const fixedTaxAmount = useMemo(() => {
+          let fixed = 0;
+          if (enabledTaxes.inss && inssBaseAmount > 0) {
+            fixed += inssBaseAmount * (inssRate / 100);
+          }
+          if (enabledTaxes.iss && issBaseAmount > 0 && !isNaN(issRate)) {
+            fixed += issBaseAmount * (issRate / 100);
+          }
+          return fixed;
+      }, [enabledTaxes.inss, inssBaseAmount, inssRate, enabledTaxes.iss, issBaseAmount, issRate]);
+
+      const calculatedGrossAmount = useMemo(() => {
+          if (calculationMode !== 'netToGross') return grossAmount;
+          const denominator = 1 - effectiveTotalTaxRates;
+          if (denominator <= 0) return Infinity;
+          return (desiredNetAmount + fixedTaxAmount) / denominator;
+      }, [calculationMode, desiredNetAmount, effectiveTotalTaxRates, fixedTaxAmount, grossAmount]);
+
+      const finalGrossAmount = calculationMode === 'netToGross' ? calculatedGrossAmount : grossAmount;
+      const actualInssBase = useMemo(() => inssBaseAmount > 0 ? inssBaseAmount : finalGrossAmount, [inssBaseAmount, finalGrossAmount]);
+      const actualIssBase = useMemo(() => issBaseAmount > 0 ? issBaseAmount : finalGrossAmount, [issBaseAmount, finalGrossAmount]);
+
+      const pisValue = useMemo(() => enabledTaxes.pcc && enabledTaxes.pis ? finalGrossAmount * 0.0065 : 0, [finalGrossAmount, enabledTaxes.pcc, enabledTaxes.pis]);
+      const cofinsValue = useMemo(() => enabledTaxes.pcc && enabledTaxes.cofins ? finalGrossAmount * 0.03 : 0, [finalGrossAmount, enabledTaxes.pcc, enabledTaxes.cofins]);
+      const csllValue = useMemo(() => enabledTaxes.pcc && enabledTaxes.csll ? finalGrossAmount * 0.01 : 0, [finalGrossAmount, enabledTaxes.pcc, enabledTaxes.csll]);
+      const pccSubtotal = useMemo(() => pisValue + cofinsValue + csllValue, [pisValue, cofinsValue, csllValue]);
+      const inssValue = useMemo(() => enabledTaxes.inss ? actualInssBase * (inssRate / 100) : 0, [actualInssBase, inssRate, enabledTaxes.inss]);
+      const issValue = useMemo(() => enabledTaxes.iss && !isNaN(issRate) ? actualIssBase * (issRate / 100) : 0, [actualIssBase, issRate, enabledTaxes.iss]);
+      const irrfValue = useMemo(() => enabledTaxes.irrf && irrfRate > 0 ? finalGrossAmount * (irrfRate / 100) : 0, [finalGrossAmount, irrfRate, enabledTaxes.irrf]);
+      const totalTaxes = useMemo(() => pccSubtotal + inssValue + issValue + irrfValue, [pccSubtotal, inssValue, issValue, irrfValue]);
+      const finalNetAmount = useMemo(() => finalGrossAmount - totalTaxes, [finalGrossAmount, totalTaxes]);
+      const hasValuesToCopy = useMemo(() => [pccSubtotal, inssValue, issValue, irrfValue].some(v => v > 0), [pccSubtotal, inssValue, issValue, irrfValue]);
+
+      const handleModeChange = (newMode) => {
+        if (newMode === 'grossToNet' && calculationMode === 'netToGross' && isFinite(calculatedGrossAmount)) {
+            setGrossAmountStr(formatCurrency(calculatedGrossAmount));
+        }
+        setCalculationMode(newMode);
+      };
+
+      const handleTaxToggle = (taxId) => {
+        setEnabledTaxes(prev => {
+            const newState = { ...prev, [taxId]: !prev[taxId] };
+            if (taxId === 'irrf' && !newState.irrf) setIrrfRate(0);
+            if (taxId === 'irrf' && newState.irrf && irrfRate === 0) setIrrfRate(1.5);
+            return newState;
+        });
+      };
+
+      const handleCopyAll = () => {
+        const valuesToCopy = [{ name: 'PCC', value: pccSubtotal }, { name: 'INSS', value: inssValue }, { name: 'ISS', value: issValue }, { name: 'IRRF', value: irrfValue }];
+        const formattedText = valuesToCopy.filter(item => item.value > 0).map(item => item.value.toFixed(2).replace('.', decimalSeparator)).join('\n');
+        if (formattedText) handleCopy(formattedText, 'all', setCopiedId);
+      };
+
+      const handleReset = () => {
+        setCalculationMode('grossToNet');
+        setGrossAmountStr(INITIAL_AMOUNT_ZERO);
+        setNetAmountStr(INITIAL_AMOUNT_ZERO);
+        setInssBaseAmountStr(INITIAL_AMOUNT_ZERO);
+        setIssBaseAmountStr(INITIAL_AMOUNT_ZERO);
+        setInssRate(INITIAL_INSS_RATE);
+        setIssRateStr(INITIAL_ISS_RATE);
+        setIrrfRate(INITIAL_IRRF_RATE);
+        setEnabledTaxes(INITIAL_ENABLED_TAXES);
+      };
+
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-light-card dark:bg-dark-card p-5 sm:p-6 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 border border-light-border/50 dark:border-dark-border/50">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-light-heading dark:text-dark-heading">{t('configuration')}</h2>
+              <button onClick={handleReset} className="flex items-center space-x-2 text-sm font-medium text-primary hover:text-accent transition-colors"><ResetIcon className="w-4 h-4" /><span>{t('reset')}</span></button>
+            </div>
+            <div className="space-y-4">
+              <div className="p-1 bg-light-bg dark:bg-dark-bg rounded-lg flex space-x-1">
+                  <button onClick={() => handleModeChange('grossToNet')} className={`w-1/2 p-2 rounded-md text-sm font-semibold transition-colors ${calculationMode === 'grossToNet' ? 'bg-accent text-white shadow' : 'text-light-text dark:text-dark-text hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{t('calculateNetValue')}</button>
+                  <button onClick={() => handleModeChange('netToGross')} className={`w-1/2 p-2 rounded-md text-sm font-semibold transition-colors ${calculationMode === 'netToGross' ? 'bg-accent text-white shadow' : 'text-light-text dark:text-dark-text hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{t('calculateGrossValue')}</button>
+              </div>
+              {calculationMode === 'grossToNet' ? 
+                <InputGroup label={t('grossInvoiceValue')} value={grossAmountStr} onChange={(e) => handleCurrencyChange(e, setGrossAmountStr)} onReset={() => setGrossAmountStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} /> 
+                : <> 
+                <InputGroup label={t('desiredNetValue')} value={netAmountStr} onChange={(e) => handleCurrencyChange(e, setNetAmountStr)} onReset={() => setNetAmountStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} /> 
+                <InputGroup label={t('calculatedGrossValue')} value={formatCurrency(calculatedGrossAmount)} disabled={true} /> 
+                </>}
+              <h3 className="text-md font-semibold text-light-heading dark:text-dark-heading pt-2 !-mb-2">{t('withholdingTaxes')}</h3>
+              <TaxControl taxId="pcc" label="PCC" tooltip={t('pccTooltip')} isChecked={enabledTaxes.pcc} onToggle={handleTaxToggle}><div className="space-y-3"><NestedTaxControl taxId="pis" label="PIS (0,65%)" isChecked={enabledTaxes.pis} onToggle={handleTaxToggle} /><NestedTaxControl taxId="cofins" label="COFINS (3%)" isChecked={enabledTaxes.cofins} onToggle={handleTaxToggle} /><NestedTaxControl taxId="csll" label="CSLL (1%)" isChecked={enabledTaxes.csll} onToggle={handleTaxToggle} /></div></TaxControl>
+              <TaxControl taxId="inss" label="INSS" tooltip={t('inssTooltip')} isChecked={enabledTaxes.inss} onToggle={handleTaxToggle}><div className="space-y-4"><div><label className="block text-sm font-medium text-light-heading dark:text-dark-heading mb-2">{t('inssRate')}</label><div className="grid grid-cols-2 gap-2">{[11, 3.5].map(rate => (<div key={rate}><input type="radio" id={`inss-rate-${rate}`} name="inss" value={rate} checked={inssRate === rate} onChange={(e) => setInssRate(Number(e.target.value))} className="sr-only peer" /><label htmlFor={`inss-rate-${rate}`} className="block w-full text-center p-2.5 rounded-lg cursor-pointer transition-colors duration-200 border border-light-border dark:border-dark-border text-light-text dark:text-dark-text peer-hover:border-accent dark:peer-hover:border-accent peer-checked:bg-accent peer-checked:text-white peer-checked:border-accent">{`${String(rate).replace('.', decimalSeparator)}%`}</label></div>))}</div></div><div><InputGroup label={t('inssCalculationBase')} value={inssBaseAmountStr} onChange={(e) => handleCurrencyChange(e, setInssBaseAmountStr)} onReset={() => setInssBaseAmountStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} />{inssBaseAmount === 0 && (<p className="text-xs text-light-text dark:text-dark-text mt-1 -mb-2">{t('inssBaseDefault', {value: formatCurrency(finalGrossAmount)})}</p>)}</div></div></TaxControl>
+              <TaxControl taxId="iss" label="ISS" tooltip={t('issTooltip')} isChecked={enabledTaxes.iss} onToggle={handleTaxToggle}><div className="space-y-4"><PercentageSliderInput label={t('issRate')} value={issRateStr} setValue={setIssRateStr} min={0} max={10} step={0.01} decimalSeparator={decimalSeparator} onReset={() => setIssRateStr(INITIAL_ISS_RATE)} initialValue={INITIAL_ISS_RATE} /><div><InputGroup label={t('issCalculationBase')} value={issBaseAmountStr} onChange={(e) => handleCurrencyChange(e, setIssBaseAmountStr)} onReset={() => setIssBaseAmountStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} />{issBaseAmount === 0 && (<p className="text-xs text-light-text dark:text-dark-text mt-1 -mb-2">{t('issBaseDefault', {value: formatCurrency(finalGrossAmount)})}</p>)}</div></div></TaxControl>
+              <TaxControl taxId="irrf" label="IRRF" tooltip={t('irrfTooltip')} isChecked={enabledTaxes.irrf} onToggle={handleTaxToggle}><div><label className="block text-sm font-medium text-light-heading dark:text-dark-heading mb-2">{t('irrfRate')}</label><div className="grid grid-cols-2 gap-2">{[1, 1.5].map(rate => (<div key={rate}><input type="radio" id={`irrf-rate-${rate}`} name="irrf" value={rate} checked={irrfRate === rate} onChange={(e) => setIrrfRate(Number(e.target.value))} className="sr-only peer" /><label htmlFor={`irrf-rate-${rate}`} className="block w-full text-center p-2.5 rounded-lg cursor-pointer transition-colors duration-200 border border-light-border dark:border-dark-border text-light-text dark:text-dark-text peer-hover:border-accent dark:peer-hover:border-accent peer-checked:bg-accent peer-checked:text-white peer-checked:border-accent">{`${String(rate).replace('.', decimalSeparator)}%`}</label></div>))}</div></div></TaxControl>
+            </div>
+          </div>
+          <div className="bg-light-card dark:bg-dark-card p-5 sm:p-6 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 border border-light-border/50 dark:border-dark-border/50">
+            <h2 className="text-lg font-semibold text-light-heading dark:text-dark-heading mb-4">{t('details')}</h2>
+            <ProgressBar total={finalGrossAmount} net={finalNetAmount} taxes={totalTaxes} t={t} />
+            {enabledTaxes.pcc && (enabledTaxes.pis || enabledTaxes.cofins || enabledTaxes.csll) && (<div className="space-y-1">{enabledTaxes.pis && <ResultRow label="PIS" percentage={`0${decimalSeparator}65%`} value={formatCurrency(pisValue)} />}{enabledTaxes.cofins && <ResultRow label="COFINS" percentage="3%" value={formatCurrency(cofinsValue)} />}{enabledTaxes.csll && <ResultRow label="CSLL" percentage="1%" value={formatCurrency(csllValue)} />}<ResultRow label={t('pccSubtotal')} value={formatCurrency(pccSubtotal)} isSubtotal={true} action={createCopyButton(pccSubtotal, 'pcc', t('copyPccSubtotal'), copiedId, setCopiedId, decimalSeparator)} /></div>)}
+            <div className="mt-4 space-y-1">{enabledTaxes.inss && <ResultRow label="INSS" percentage={`${String(inssRate).replace('.', decimalSeparator)}%`} value={formatCurrency(inssValue)} action={createCopyButton(inssValue, 'inss', t('copyInss'), copiedId, setCopiedId, decimalSeparator)} />}{enabledTaxes.iss && <ResultRow label="ISS" percentage={`${String(issRateStr).replace('.', decimalSeparator)}%`} value={formatCurrency(issValue)} action={createCopyButton(issValue, 'iss', t('copyIss'), copiedId, setCopiedId, decimalSeparator)} />}{enabledTaxes.irrf && irrfRate > 0 && <ResultRow label="IRRF" percentage={`${String(irrfRate).replace('.', decimalSeparator)}%`} value={formatCurrency(irrfValue)} action={createCopyButton(irrfValue, 'irrf', t('copyIrrf'), copiedId, setCopiedId, decimalSeparator)} />}</div>
+            <div className="mt-6 pt-4 border-t-2 border-light-border dark:border-dark-border space-y-2"><TotalRow label={t('totalTaxes')} value={formatCurrency(totalTaxes)} highlight="negative" action={createCopyButton(totalTaxes, 'total-taxes', t('copyTotalTaxes'), copiedId, setCopiedId, decimalSeparator)}/><TotalRow label={t('netValueToReceive')} value={formatCurrency(finalNetAmount)} highlight="positive" action={createCopyButton(finalNetAmount, 'net-amount', t('copyNetValue'), copiedId, setCopiedId, decimalSeparator)} /></div>
+             {hasValuesToCopy && (<div className="mt-6"><button onClick={handleCopyAll} className="w-full flex items-center justify-center space-x-2 p-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-700 disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-all duration-200">{copiedId === 'all' ? <CheckIcon className="w-5 h-5" /> : <CopyIcon className="w-5 h-5" />}<span>{copiedId === 'all' ? t('copied') : t('copyAllToSap')}</span></button></div>)}
+          </div>
+        </div>
+      );
+    }
+    
+    const SimplePercentageCalculator = () => {
+        const { t, formatCurrency, parseLocaleNumber, handleCurrencyChange, decimalSeparator } = useContext(LocalizationContext);
+        const INITIAL_AMOUNT_ZERO = formatCurrency(0);
+        const INITIAL_PERCENTAGE_ZERO = '0';
+        const [amountStr, setAmountStr] = useState(INITIAL_AMOUNT_ZERO);
+        const [percentageStr, setPercentageStr] = useState(INITIAL_PERCENTAGE_ZERO);
+        const [copiedId, setCopiedId] = useState(null);
+        const amount = useMemo(() => parseLocaleNumber(amountStr), [amountStr, parseLocaleNumber]);
+        const percentage = useMemo(() => parseFloat(String(percentageStr).replace(decimalSeparator, '.')), [percentageStr, decimalSeparator]);
+        const result = useMemo(() => isNaN(amount) || isNaN(percentage) ? 0 : amount * (percentage / 100), [amount, percentage]);
+        
+        return (
+            <div className="bg-light-card dark:bg-dark-card p-6 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 border border-light-border/50 dark:border-dark-border/50">
+                <h3 className="text-lg font-semibold text-light-heading dark:text-dark-heading">{t('calcXOfValue')}</h3><p className="text-sm text-light-text dark:text-dark-text mt-1 mb-4">{t('calcXOfValueDesc')}</p>
+                <div className="space-y-4">
+                    <InputGroup label={t('totalValue')} value={amountStr} onChange={(e) => handleCurrencyChange(e, setAmountStr)} onReset={() => setAmountStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} />
+                    <PercentageSliderInput label={t('percentage')} value={percentageStr} setValue={setPercentageStr} decimalSeparator={decimalSeparator} onReset={() => setPercentageStr(INITIAL_PERCENTAGE_ZERO)} initialValue={INITIAL_PERCENTAGE_ZERO}/>
+                </div>
+                <div className="mt-6 pt-4 border-t border-light-border dark:border-dark-border"><TotalRow label={t('result')} value={formatCurrency(result)} highlight="positive" action={createCopyButton(result, 'simple-perc-result', t('copyResult'), copiedId, setCopiedId, decimalSeparator)} /></div>
+            </div>
+        );
+    }
+
+    const ReversePercentageCalculator = () => {
+        const { t, formatCurrency, parseLocaleNumber, handleCurrencyChange, decimalSeparator } = useContext(LocalizationContext);
+        const INITIAL_AMOUNT_ZERO = formatCurrency(0);
+        const INITIAL_PERCENTAGE_ZERO = '0';
+        const [finalAmountStr, setFinalAmountStr] = useState(INITIAL_AMOUNT_ZERO);
+        const [percentageAddedStr, setPercentageAddedStr] = useState(INITIAL_PERCENTAGE_ZERO);
+        const [copiedId, setCopiedId] = useState(null);
+        const finalAmount = useMemo(() => parseLocaleNumber(finalAmountStr), [finalAmountStr, parseLocaleNumber]);
+        const percentageAdded = useMemo(() => parseFloat(String(percentageAddedStr).replace(decimalSeparator, '.')), [percentageAddedStr, decimalSeparator]);
+        const originalAmount = useMemo(() => isNaN(finalAmount) || isNaN(percentageAdded) || percentageAdded <= -100 ? 0 : finalAmount / (1 + (percentageAdded / 100)), [finalAmount, percentageAdded]);
+
+        return (
+             <div className="bg-light-card dark:bg-dark-card p-6 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 border border-light-border/50 dark:border-dark-border/50">
+                <h3 className="text-lg font-semibold text-light-heading dark:text-dark-heading">{t('discoverOriginalValue')}</h3><p className="text-sm text-light-text dark:text-dark-text mt-1 mb-4">{t('discoverOriginalValueDesc')}</p>
+                <div className="space-y-4">
+                    <InputGroup label={t('finalValueWithAddition')} value={finalAmountStr} onChange={(e) => handleCurrencyChange(e, setFinalAmountStr)} onReset={() => setFinalAmountStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} />
+                    <PercentageSliderInput label={t('percentageAdded')} value={percentageAddedStr} setValue={setPercentageAddedStr} decimalSeparator={decimalSeparator} onReset={() => setPercentageAddedStr(INITIAL_PERCENTAGE_ZERO)} initialValue={INITIAL_PERCENTAGE_ZERO}/>
+                </div>
+                <div className="mt-6 pt-4 border-t border-light-border dark:border-dark-border"><TotalRow label={t('originalBaseValue')} value={formatCurrency(originalAmount)} highlight="positive" action={createCopyButton(originalAmount, 'reverse-perc-result', t('copyOriginalValue'), copiedId, setCopiedId, decimalSeparator)} /></div>
+            </div>
+        );
+    }
+
+    const PercentageVarianceCalculator = () => {
+        const { t, formatCurrency, parseLocaleNumber, handleCurrencyChange, decimalSeparator } = useContext(LocalizationContext);
+        const INITIAL_AMOUNT_ZERO = formatCurrency(0);
+        const [initialValueStr, setInitialValueStr] = useState(INITIAL_AMOUNT_ZERO);
+        const [finalValueStr, setFinalValueStr] = useState(INITIAL_AMOUNT_ZERO);
+        const [copiedId, setCopiedId] = useState(null);
+        const initialValue = useMemo(() => parseLocaleNumber(initialValueStr), [initialValueStr, parseLocaleNumber]);
+        const finalValue = useMemo(() => parseLocaleNumber(finalValueStr), [finalValueStr, parseLocaleNumber]);
+        const variance = useMemo(() => isNaN(initialValue) || isNaN(finalValue) || initialValue === 0 ? 0 : ((finalValue - initialValue) / initialValue) * 100, [initialValue, finalValue]);
+        const highlight = variance > 0 ? 'positive' : variance < 0 ? 'negative' : 'neutral';
+        const displayVariance = `${variance >= 0 ? '+' : ''}${variance.toFixed(2).replace('.', decimalSeparator)}%`;
+
+        return (
+             <div className="bg-light-card dark:bg-dark-card p-6 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 border border-light-border/50 dark:border-dark-border/50">
+                <h3 className="text-lg font-semibold text-light-heading dark:text-dark-heading">{t('calculatePercentageVariance')}</h3><p className="text-sm text-light-text dark:text-dark-text mt-1 mb-4">{t('calculatePercentageVarianceDesc')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InputGroup label={t('initialValue')} value={initialValueStr} onChange={(e) => handleCurrencyChange(e, setInitialValueStr)} onReset={() => setInitialValueStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} />
+                    <InputGroup label={t('finalValue')} value={finalValueStr} onChange={(e) => handleCurrencyChange(e, setFinalValueStr)} onReset={() => setFinalValueStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} />
+                </div>
+                <div className="mt-6 pt-4 border-t border-light-border dark:border-dark-border"><div className="flex justify-between items-center py-2"><span className="font-bold text-light-heading dark:text-dark-heading">{t('variance')}</span><div className="flex items-center gap-2"><div className={`flex items-center gap-2 font-bold font-mono text-lg ${highlight === 'positive' ? 'text-green-500' : highlight === 'negative' ? 'text-red-500' : 'text-light-heading dark:text-dark-heading'}`}>{variance > 0 && <ArrowUpIcon className="w-5 h-5"/>}{variance < 0 && <ArrowDownIcon className="w-5 h-5"/>}<span>{displayVariance}</span></div>{createCopyButton(displayVariance, 'variance-perc-result', t('copyVariance'), copiedId, setCopiedId, decimalSeparator)}</div></div></div>
+            </div>
+        );
+    }
+    
+    const PercentageRepresentationCalculator = () => {
+        const { t, formatCurrency, parseLocaleNumber, handleCurrencyChange, decimalSeparator } = useContext(LocalizationContext);
+        const INITIAL_AMOUNT_ZERO = formatCurrency(0);
+        const [partialValueStr, setPartialValueStr] = useState(INITIAL_AMOUNT_ZERO);
+        const [totalValueStr, setTotalValueStr] = useState(INITIAL_AMOUNT_ZERO);
+        const [copiedId, setCopiedId] = useState(null);
+        const partialValue = useMemo(() => parseLocaleNumber(partialValueStr), [partialValueStr, parseLocaleNumber]);
+        const totalValue = useMemo(() => parseLocaleNumber(totalValueStr), [totalValueStr, parseLocaleNumber]);
+        const percentage = useMemo(() => totalValue === 0 ? 0 : (partialValue / totalValue) * 100, [partialValue, totalValue]);
+        const displayPercentage = `${percentage.toFixed(2).replace('.', decimalSeparator)}%`;
+        
+        return (
+             <div className="bg-light-card dark:bg-dark-card p-6 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 border border-light-border/50 dark:border-dark-border/50">
+                <h3 className="text-lg font-semibold text-light-heading dark:text-dark-heading">{t('calculatePercentageRepresentation')}</h3><p className="text-sm text-light-text dark:text-dark-text mt-1 mb-4">{t('calculatePercentageRepresentationDesc')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InputGroup label={t('partialValue')} value={partialValueStr} onChange={(e) => handleCurrencyChange(e, setPartialValueStr)} onReset={() => setPartialValueStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} />
+                    <InputGroup label={t('totalValue')} value={totalValueStr} onChange={(e) => handleCurrencyChange(e, setTotalValueStr)} onReset={() => setTotalValueStr(INITIAL_AMOUNT_ZERO)} initialValue={INITIAL_AMOUNT_ZERO} />
+                </div>
+                <div className="mt-6 pt-4 border-t border-light-border dark:border-dark-border"><TotalRow label={t('represents')} value={displayPercentage} highlight="positive" action={createCopyButton(displayPercentage, 'rep-perc-result', t('copyPercentage'), copiedId, setCopiedId, decimalSeparator)} /></div>
+            </div>
+        );
+    }
+
+    const RuleOfThreeCalculator = () => {
+        const { t, parseLocaleNumber, decimalSeparator } = useContext(LocalizationContext);
+        const INITIAL_RULE_OF_3_ZERO = '0';
+        const [valA, setValA] = useState(INITIAL_RULE_OF_3_ZERO);
+        const [valB, setValB] = useState(INITIAL_RULE_OF_3_ZERO);
+        const [valC, setValC] = useState(INITIAL_RULE_OF_3_ZERO);
+        const [copiedId, setCopiedId] = useState(null);
+        
+        const a = parseFloat(valA.replace(decimalSeparator,'.'));
+        const b = parseFloat(valB.replace(decimalSeparator,'.'));
+        const c = parseFloat(valC.replace(decimalSeparator,'.'));
+
+        const result = useMemo(() => {
+            if (isNaN(a) || isNaN(b) || isNaN(c) || a === 0) return t('invalid');
+            const val = (c * b) / a;
+            return val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }).replace('.', decimalSeparator);
+        }, [a, b, c, t, decimalSeparator]);
+        
+        const handleFocus = (value, setter) => { if (value === '0') setter(''); };
+        const handleBlur = (value, setter) => { if (value === '') setter('0'); };
+
+        return (
+            <div className="bg-light-card dark:bg-dark-card p-5 sm:p-8 rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-black/20 border border-light-border/50 dark:border-dark-border/50 max-w-2xl mx-auto">
+                 <h3 className="text-lg font-semibold text-light-heading dark:text-dark-heading">{t('ruleOf3')}</h3>
+                 <div className="text-sm text-light-text dark:text-dark-text mt-1 mb-6">
+                    <p>{t('ruleOf3Desc')}</p>
+                    <p className="mt-2"><strong>{t('ruleOf3Example')}</strong> <br />{t('ruleOf3Instruction')}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-x-8 items-end">
+                    <InputGroup label={t('ifA')} value={valA} onChange={(e) => setValA(e.target.value)} onFocus={() => handleFocus(valA, setValA)} onBlur={() => handleBlur(valA, setValA)} onReset={() => setValA(INITIAL_RULE_OF_3_ZERO)} initialValue={INITIAL_RULE_OF_3_ZERO}/>
+                    <InputGroup label={t('isToB')} value={valB} onChange={(e) => setValB(e.target.value)} onFocus={() => handleFocus(valB, setValB)} onBlur={() => handleBlur(valB, setValB)} onReset={() => setValB(INITIAL_RULE_OF_3_ZERO)} initialValue={INITIAL_RULE_OF_3_ZERO}/>
+                    <InputGroup label={t('thenC')} value={valC} onChange={(e) => setValC(e.target.value)} onFocus={() => handleFocus(valC, setValC)} onBlur={() => handleBlur(valC, setValC)} onReset={() => setValC(INITIAL_RULE_OF_3_ZERO)} initialValue={INITIAL_RULE_OF_3_ZERO}/>
+                     <div className="pb-1">
+                        <label className="block text-sm font-medium text-light-heading dark:text-dark-heading mb-1.5">{t('isToX')}</label>
+                        <div className="flex items-center gap-2">
+                            <div className="p-2.5 w-full rounded-lg border border-accent bg-accent/10 text-lg font-bold text-light-heading dark:text-dark-heading text-center">{result}</div>
+                            {createCopyButton(result, 'rule-of-3-result', t('copyResult'), copiedId, setCopiedId, decimalSeparator)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    // --- MAIN APP COMPONENT ---
+    const App = () => {
+      const localization = useLocalization();
+      const { locale, setLocale, t } = localization;
+
+      const [theme, setTheme] = useState(() => {
+        const savedTheme = localStorage.getItem('theme');
+        return savedTheme && ['light', 'dark'].includes(savedTheme) ? savedTheme : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      });
+      
+      const [activeTab, setActiveTab] = useState('tax');
+
+      useEffect(() => {
+        const root = window.document.documentElement;
+        if (theme === 'dark') root.classList.add('dark'); else root.classList.remove('dark');
+        localStorage.setItem('theme', theme);
+      }, [theme]);
+
+      const toggleTheme = () => setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+
+      const tabs = [
+          {id: 'tax', name: t('taxCalculator')},
+          {id: 'percentage', name: t('percentageCalculator')},
+          {id: 'rule', name: t('ruleOf3')}
+      ];
+
+      return (
+        <LocalizationContext.Provider value={localization}>
+            <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+              <div className="max-w-7xl mx-auto">
+                <header className="flex items-start justify-between mb-8 gap-4">
+                  <div className="flex items-center space-x-3">
+                      <CalculatorIcon className="w-8 h-8 text-primary shrink-0" />
+                      <div>
+                        <h1 className="text-2xl font-bold text-light-heading dark:text-dark-heading">{t('s2pCalculators')}</h1>
+                        <p className="text-light-text dark:text-dark-text">{t('s2pDescription')}</p>
+                      </div>
+                  </div>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <div className="relative">
+                        <select
+                            value={locale}
+                            onChange={(e) => setLocale(e.target.value)}
+                            className="p-2 pl-9 rounded-full text-light-text dark:text-dark-text bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent focus:ring-offset-light-bg dark:focus:ring-offset-dark-bg transition-colors duration-200 appearance-none cursor-pointer"
+                            aria-label="Select language and currency"
+                        >
+                            {Object.entries(locales).map(([key, value]) => (
+                                <option key={key} value={key}>{value.name}</option>
+                            ))}
+                        </select>
+                        <LanguageIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-light-text dark:text-dark-text" />
+                    </div>
+                    <button onClick={toggleTheme} className="p-2 rounded-full text-light-text dark:text-dark-text hover:bg-light-border/50 dark:hover:bg-dark-border/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent focus:ring-offset-light-bg dark:focus:ring-offset-dark-bg transition-colors duration-200" aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
+                      {theme === 'light' ? <MoonIcon className="w-6 h-6" /> : <SunIcon className="w-6 h-6" />}
+                    </button>
+                  </div>
+                </header>
+
+                <div className="border-b border-light-border dark:border-dark-border mb-8">
+                    <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+                        {tabs.map(tab => (
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                                className={`${activeTab === tab.id ? 'border-accent text-accent' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500'}
+                                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                            >{tab.name}</button>
+                        ))}
+                    </nav>
+                </div>
+                
+                <main>
+                    {activeTab === 'tax' && <TaxCalculator />}
+                    {activeTab === 'percentage' && (
+                        <div className="space-y-8 max-w-2xl mx-auto">
+                            <SimplePercentageCalculator />
+                            <ReversePercentageCalculator />
+                            <PercentageVarianceCalculator />
+                            <PercentageRepresentationCalculator />
+                        </div>
+                    )}
+                    {activeTab === 'rule' && <RuleOfThreeCalculator />}
+                </main>
+              </div>
+            </div>
+        </LocalizationContext.Provider>
+      );
+    };
+
+    // --- RENDER THE APP ---
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<React.StrictMode><App /></React.StrictMode>);
+    }
